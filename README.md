@@ -1,4 +1,4 @@
-# wx_channels_web
+# wx-video-channel-download
 
 视频号视频下载工具 —— 前后端分离的 Web 服务，支持通过分享链接解析视频信息、在线播放和下载。
 
@@ -77,8 +77,8 @@ go mod tidy
 go run .
 
 # 或构建后运行
-go build -o wx_channels_web .
-./wx_channels_web
+go build -o wx-video-channel-download .
+./wx-video-channel-download
 ```
 
 访问 `http://localhost:2022` 即可使用。
