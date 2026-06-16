@@ -1,0 +1,7 @@
+api:
+  hostname: "0.0.0.0"
+  port: 2022
+
+# yuanbao.tencent.com session cookie，用于解析视频号分享链接
+# 需要定期更新
+sph_cookie: ""

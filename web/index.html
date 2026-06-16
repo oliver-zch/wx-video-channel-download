@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频号视频下载工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #ffffff;
+            color: #18181b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 640px;
+            padding: 40px 20px;
+            flex: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #18181b;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 14px;
+            color: #71717a;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px 16px;
+            background: #f4f4f5;
+            border: 1px solid #d4d4d8;
+            border-radius: 8px;
+            color: #18181b;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: #3b82f6;
+        }
+
+        .search-box input::placeholder {
+            color: #a1a1aa;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-primary:disabled {
+            background: #1e3a5f;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f4f4f5;
+            color: #18181b;
+            border: 1px solid #d4d4d8;
+        }
+
+        .btn-secondary:hover {
+            background: #e4e4e7;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #71717a;
+            display: none;
+        }
+
+        .loading .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e4e4e7;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #991b1b;
+            font-size: 14px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .result {
+            display: none;
+        }
+
+        .video-card {
+            background: #f4f4f5;
+            border: 1px solid #e4e4e7;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .video-info {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+        }
+
+        .video-cover {
+            width: 160px;
+            height: 90px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #e4e4e7;
+            flex-shrink: 0;
+        }
+
+        .video-meta {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .video-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #18181b;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-author {
+            font-size: 13px;
+            color: #a1a1aa;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .video-author img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .video-stats {
+            font-size: 12px;
+            color: #71717a;
+            margin-top: 8px;
+        }
+
+        .video-stats span {
+            margin-right: 12px;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 12px;
+            padding: 0 16px 16px;
+        }
+
+        .video-actions .btn {
+            flex: 1;
+        }
+
+        .player-container {
+            margin-top: 16px;
+            display: none;
+        }
+
+        .player-container video {
+            width: 100%;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #a1a1aa;
+            font-size: 13px;
+        }
+
+        .cookie-section {
+            margin-top: 40px;
+            padding: 16px;
+            background: #f4f4f5;
+            border: 1px solid #e4e4e7;
+            border-radius: 12px;
+        }
+
+        .cookie-section h3 {
+            font-size: 14px;
+            color: #71717a;
+            margin-bottom: 12px;
+        }
+
+        .cookie-section textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: #ffffff;
+            border: 1px solid #d4d4d8;
+            border-radius: 6px;
+            color: #18181b;
+            font-size: 13px;
+            font-family: monospace;
+            resize: vertical;
+            min-height: 60px;
+            outline: none;
+        }
+
+        .cookie-section textarea:focus {
+            border-color: #3b82f6;
+        }
+
+        .cookie-section .btn {
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        @media (max-width: 480px) {
+            .search-box {
+                flex-direction: column;
+            }
+
+            .video-info {
+                flex-direction: column;
+            }
+
+            .video-cover {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 16/9;
+            }
+
+            .video-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>群玉山微信视频号下载工具</h1>
+            <p>粘贴视频号分享链接，获取视频信息并下载</p>
+        </header>
+
+        <div class="search-box">
+            <input type="text" id="url-input" placeholder="输入视频号分享链接..." onkeydown="if(event.key==='Enter')queryVideo()">
+            <button class="btn btn-primary" id="query-btn" onclick="queryVideo()">查询</button>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>正在解析视频信息...</div>
+        </div>
+
+        <div class="result" id="result">
+            <div class="video-card">
+                <div class="video-info">
+                    <img class="video-cover" id="video-cover" src="" alt="封面">
+                    <div class="video-meta">
+                        <div class="video-title" id="video-title"></div>
+                        <div class="video-author">
+                            <img id="author-avatar" src="" alt="头像">
+                            <span id="author-name"></span>
+                        </div>
+                        <div class="video-stats" id="video-stats"></div>
+                    </div>
+                </div>
+                <div class="video-actions">
+                    <button class="btn btn-primary" onclick="playVideo()">▶ 播放视频</button>
+                    <button class="btn btn-secondary" onclick="downloadVideo()">⬇ 下载视频</button>
+                </div>
+            </div>
+
+            <div class="player-container" id="player-container">
+                <video id="video-player" controls></video>
+            </div>
+        </div>
+
+        <div class="cookie-section">
+            <h3>🔑 Cookie 设置</h3>
+            <textarea id="cookie-input" placeholder="粘贴 yuanbao.tencent.com 的 session cookie..."></textarea>
+            <button class="btn btn-secondary" onclick="updateCookie()">更新 Cookie</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>designed by oliver</p>
+    </footer>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let currentData = null;
+
+        async function queryVideo() {
+            const url = document.getElementById('url-input').value.trim();
+            if (!url) return;
+
+            const errorEl = document.getElementById('error');
+            const loadingEl = document.getElementById('loading');
+            const resultEl = document.getElementById('result');
+            const playerEl = document.getElementById('player-container');
+
+            errorEl.style.display = 'none';
+            resultEl.style.display = 'none';
+            playerEl.style.display = 'none';
+            loadingEl.style.display = 'block';
+            document.getElementById('query-btn').disabled = true;
+
+            try {
+                const resp = await fetch(`${API_BASE}/api/parse`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await resp.json();
+
+                if (data.code !== 0) {
+                    showError(data.msg);
+                    return;
+                }
+
+                currentData = data.data;
+                renderResult(data.data);
+            } catch (e) {
+                showError('请求失败: ' + e.message);
+            } finally {
+                loadingEl.style.display = 'none';
+                document.getElementById('query-btn').disabled = false;
+            }
+        }
+
+        function renderResult(info) {
+            const coverEl = document.getElementById('video-cover');
+            coverEl.src = info.cover_url || '';
+            coverEl.style.display = info.cover_url ? 'block' : 'none';
+
+            document.getElementById('video-title').textContent = info.title || '无标题';
+            document.getElementById('author-name').textContent = info.author || '未知作者';
+            document.getElementById('author-avatar').src = info.author_avatar || '';
+            document.getElementById('author-avatar').style.display = info.author_avatar ? 'block' : 'none';
+
+            const stats = [];
+            if (info.like_count) stats.push(`👍 ${info.like_count}`);
+            if (info.fav_count) stats.push(`⭐ ${info.fav_count}`);
+            if (info.comment_count) stats.push(`💬 ${info.comment_count}`);
+            document.getElementById('video-stats').innerHTML = stats.map(s => `<span>${s}</span>`).join('');
+
+            document.getElementById('result').style.display = 'block';
+        }
+
+        function getVideoProxyURL() {
+            if (!currentData) return '';
+            const videoURL = currentData.original_url || currentData.video_url || currentData.h265_url || currentData.h264_url;
+            const key = currentData.decrypt_key || '';
+            let url = `${API_BASE}/api/proxy?url=${encodeURIComponent(videoURL)}`;
+            if (key) url += `&key=${encodeURIComponent(key)}`;
+            return url;
+        }
+
+        function playVideo() {
+            const url = getVideoProxyURL();
+            if (!url) return;
+
+            const player = document.getElementById('video-player');
+            player.src = url;
+            document.getElementById('player-container').style.display = 'block';
+            player.play();
+        }
+
+        function downloadVideo() {
+            const url = getVideoProxyURL();
+            if (!url) return;
+
+            const title = (currentData.title || 'video').replace(/[<>:"/\\|?*]/g, '_') + '.mp4';
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = title;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function showError(msg) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+        }
+
+        async function updateCookie() {
+            const cookie = document.getElementById('cookie-input').value.trim();
+            if (!cookie) return;
+
+            try {
+                const resp = await fetch(`${API_BASE}/api/config/cookie`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cookie })
+                });
+                const data = await resp.json();
+                if (data.code === 0) {
+                    alert('Cookie 更新成功！');
+                } else {
+                    alert('更新失败: ' + data.msg);
+                }
+            } catch (e) {
+                alert('请求失败: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
